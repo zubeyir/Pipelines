@@ -272,10 +272,12 @@ if [ $VolumeBasedProcessing = "YES" ] ; then
   
   #Add temporal filtering
   log_Msg "Add temporal filtering"
-  fslmaths ${FEATDir}/${LevelOnefMRIName}${AdditionalPreprocessingString}"$SmoothingString".nii.gz -bptf `echo "0.5 * $TemporalFilter / $TR_vol" | bc -l` -1 ${FEATDir}/${LevelOnefMRIName}${AdditionalPreprocessingString}"$TemporalFilterString""$SmoothingString".nii.gz
+  # Compute mean, filter data using -bptf, then add mean back
+  fslmaths ${FEATDir}/${LevelOnefMRIName}${AdditionalPreprocessingString}"$SmoothingString".nii.gz -Tmean ${FEATDir}/${LevelOnefMRIName}${AdditionalPreprocessingString}"$SmoothingString"_mean.nii.gz
+  fslmaths ${FEATDir}/${LevelOnefMRIName}${AdditionalPreprocessingString}"$SmoothingString".nii.gz -bptf `echo "0.5 * $TemporalFilter / $TR_vol" | bc -l` -1 -add ${FEATDir}/${LevelOnefMRIName}${AdditionalPreprocessingString}"$SmoothingString"_mean.nii.gz ${FEATDir}/${LevelOnefMRIName}${AdditionalPreprocessingString}"$TemporalFilterString""$SmoothingString".nii.gz
 
-  #Run film_gls on subcortical volume data
-  log_Msg "Run film_gls on subcortical volume data"
+  #Run film_gls on NIFTI volume data
+  log_Msg "Run film_gls on NIFTI volume data"
   film_gls --rn=${FEATDir}/StandardVolumeStats --sa --ms=5 --in=${FEATDir}/${LevelOnefMRIName}${AdditionalPreprocessingString}"$TemporalFilterString""$SmoothingString".nii.gz --pd="$DesignMatrix" --con=${DesignContrasts} ${ExtraArgs} --thr=1000
 fi
 
